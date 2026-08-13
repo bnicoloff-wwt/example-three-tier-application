@@ -48,7 +48,7 @@ app.patch('/tasks/:id', async (req, res) => {
   res.json(updated[0]);
 });
 
-// DELETE /tasks/:id — delete a task
+// DELETE /tasks/:id — delete a task. Returns 404 if task with specified ID is not found.
 app.delete('/tasks/:id', async (req, res) => {
   const id = parseInt(req.params.id, 10);
 
