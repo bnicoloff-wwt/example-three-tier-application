@@ -1,4 +1,5 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const db = require('./db');
 
 const app = express();
@@ -6,8 +7,52 @@ const PORT = process.env.PORT || 3001;
 
 app.use(express.json());
 
+// Rate limiter for login endpoint: 5 requests per 15 minutes per IP
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // limit each IP to 5 requests per windowMs
+  message: {
+    error: 'Too many login attempts, please try again later',
+    retryAfter: 15,
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skip: (req) => {
+    // Skip rate limiting for health checks
+    return req.path === '/health';
+  },
+});
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
+});
+
+// POST /login — authenticate user with rate limiting
+app.post('/login', loginLimiter, async (req, res) => {
+  const { username, password } = req.body;
+
+  // Basic validation
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required' });
+  }
+
+  // TODO: In a real application, verify credentials against a users table
+  // For now, return a simple success response
+  // Example: check if username exists in database, verify password hash, etc.
+  
+  // Simulated authentication - in production, query the users table and verify
+  // const { rows } = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+  // if (rows.length === 0 || !bcrypt.compareSync(password, rows[0].password_hash)) {
+  //   return res.status(401).json({ error: 'Invalid credentials' });
+  // }
+
+  // Mock successful login response
+  res.json({
+    success: true,
+    message: 'Login successful',
+    token: 'mock-jwt-token-' + Date.now(),
+    user: { username },
+  });
 });
 
 // GET /tasks — list all tasks
