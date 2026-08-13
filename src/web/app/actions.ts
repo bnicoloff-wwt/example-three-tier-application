@@ -11,8 +11,22 @@ export type Task = {
   created_at: string;
 };
 
-export async function getTasks(): Promise<Task[]> {
-  const res = await fetch(`${API_URL}/tasks`, { cache: 'no-store' });
+export type PaginationInfo = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+};
+
+export type TasksResponse = {
+  data: Task[];
+  pagination: PaginationInfo;
+};
+
+export async function getTasks(page: number = 1, limit: number = 10): Promise<TasksResponse> {
+  const res = await fetch(`${API_URL}/tasks?page=${page}&limit=${limit}`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch tasks');
   return res.json();
 }

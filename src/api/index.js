@@ -10,10 +10,46 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-// GET /tasks — list all tasks
-app.get('/tasks', async (_req, res) => {
-  const { rows } = await db.query('SELECT * FROM tasks ORDER BY created_at ASC');
-  res.json(rows);
+// GET /tasks — list all tasks with pagination support
+app.get('/tasks', async (req, res) => {
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+
+  // Validate pagination parameters
+  if (page < 1 || limit < 1 || limit > 100) {
+    return res.status(400).json({ error: 'Invalid pagination parameters' });
+  }
+
+  const offset = (page - 1) * limit;
+
+  try {
+    // Get total count
+    const countResult = await db.query('SELECT COUNT(*) as total FROM tasks');
+    const total = parseInt(countResult.rows[0].total, 10);
+
+    // Get paginated results
+    const { rows } = await db.query(
+      'SELECT * FROM tasks ORDER BY created_at ASC LIMIT $1 OFFSET $2',
+      [limit, offset]
+    );
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      data: rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 // POST /tasks — create a task
