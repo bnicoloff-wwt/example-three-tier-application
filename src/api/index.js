@@ -59,6 +59,11 @@ app.delete('/tasks/:id', async (req, res) => {
   res.status(204).send();
 });
 
-app.listen(PORT, () => {
-  console.log(`API listening on port ${PORT}`);
-});
+// Only start the server if this file is run directly
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`API listening on port ${PORT}`);
+  });
+}
+
+module.exports = app;
