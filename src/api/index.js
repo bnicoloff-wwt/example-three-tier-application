@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('./db');
+const loginLimiter = require('./middleware/loginRateLimiter');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -8,6 +9,52 @@ app.use(express.json({ limit: '10mb' }));
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
+});
+
+// POST /login — authenticate user with rate limiting
+app.post('/login', loginLimiter, async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+
+    // Validate input
+    if (!username || typeof username !== 'string' || !username.trim()) {
+      return res.status(400).json({ error: 'username is required' });
+    }
+
+    if (!password || typeof password !== 'string' || !password.trim()) {
+      return res.status(400).json({ error: 'password is required' });
+    }
+
+    // In a real application, you would:
+    // 1. Hash and verify the password against a users table
+    // 2. Generate a JWT token or session ID
+    // 3. Return the token to the client
+    //
+    // For this example, we'll do a simple validation
+    const username_trimmed = username.trim();
+    const password_trimmed = password.trim();
+
+    // Check if user exists and password is correct (mock implementation)
+    if (username_trimmed.length < 3) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (password_trimmed.length < 6) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Return mock success response with a token
+    res.json({
+      success: true,
+      user: {
+        id: 1,
+        username: username_trimmed,
+      },
+      token: 'mock-jwt-token-' + Date.now(),
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET /tasks — list all tasks

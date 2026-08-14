@@ -64,25 +64,39 @@ The API is not exposed directly, but you can reach it through the web container 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/health` | Health check |
+| POST | `/login` | Authenticate user (rate-limited: 5 attempts per 15 minutes) |
 | GET | `/tasks` | List all tasks |
 | POST | `/tasks` | Create a task (`{ "title": "..." }`) |
 | PATCH | `/tasks/:id` | Update a task (`{ "completed": true }` or `{ "title": "..." }`) |
+| POST | `/tasks/bulk` | Bulk import tasks |
+
+### Rate Limiting
+
+The `/login` endpoint is protected with rate limiting to prevent brute-force attacks:
+- **Limit**: 5 login attempts per IP address per 15 minutes
+- **Status Code**: 429 (Too Many Requests) when exceeded
+- **Response Headers**: `RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`
+
+For detailed information about rate limiting, see [src/api/RATE_LIMITING.md](src/api/RATE_LIMITING.md).
 
 ## Project structure
 
 ```
 src/
-├── api/            # Express REST API
-│   ├── index.js    # Route handlers
-│   ├── db.js       # PostgreSQL connection pool
+├── api/                    # Express REST API
+│   ├── index.js           # Route handlers
+│   ├── db.js              # PostgreSQL connection pool
+│   ├── RATE_LIMITING.md   # Rate limiting documentation
+│   ├── middleware/        # Express middleware
+│   │   └── loginRateLimiter.js
 │   └── Dockerfile
-├── db/             # Database migrations
-│   ├── migrations/ # node-pg-migrate migration files
+├── db/                     # Database migrations
+│   ├── migrations/        # node-pg-migrate migration files
 │   └── Dockerfile
-├── web/            # Next.js frontend
-│   ├── app/        # App Router pages and components
+├── web/                    # Next.js frontend
+│   ├── app/               # App Router pages and components
 │   └── Dockerfile
-└── infrastructure/ # Terraform for GCP deployment
+└── infrastructure/         # Terraform for GCP deployment
     ├── main.tf
     ├── variables.tf
     └── outputs.tf
