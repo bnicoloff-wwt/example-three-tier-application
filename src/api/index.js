@@ -6,6 +6,9 @@ const PORT = process.env.PORT || 3001;
 
 app.use(express.json({ limit: '10mb' }));
 
+// Valid priority values
+const VALID_PRIORITIES = ['low', 'medium', 'high'];
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
@@ -23,13 +26,19 @@ app.get('/tasks', async (_req, res, next) => {
 // POST /tasks — create a task
 app.post('/tasks', async (req, res, next) => {
   try {
-    const { title } = req.body;
+    const { title, priority = 'medium' } = req.body;
+    
     if (!title || typeof title !== 'string' || !title.trim()) {
       return res.status(400).json({ error: 'title is required' });
     }
+    
+    if (!VALID_PRIORITIES.includes(priority)) {
+      return res.status(400).json({ error: `priority must be one of: ${VALID_PRIORITIES.join(', ')}` });
+    }
+    
     const { rows } = await db.query(
-      'INSERT INTO tasks (title) VALUES ($1) RETURNING *',
-      [title.trim()]
+      'INSERT INTO tasks (title, priority) VALUES ($1, $2) RETURNING *',
+      [title.trim(), priority]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -72,9 +81,17 @@ app.post('/tasks/bulk', async (req, res, next) => {
         continue;
       }
 
+      // Validate priority if provided
+      const taskPriority = task.priority || 'medium';
+      if (!VALID_PRIORITIES.includes(taskPriority)) {
+        errors.push({ index: i, error: `priority must be one of: ${VALID_PRIORITIES.join(', ')}` });
+        continue;
+      }
+
       validatedTasks.push({
         title: task.title.trim(),
         completed: task.completed === true ? true : false,
+        priority: taskPriority,
       });
     }
 
@@ -90,8 +107,8 @@ app.post('/tasks/bulk', async (req, res, next) => {
     const insertedTasks = [];
     for (const task of validatedTasks) {
       const { rows } = await db.query(
-        'INSERT INTO tasks (title, completed) VALUES ($1, $2) RETURNING *',
-        [task.title, task.completed]
+        'INSERT INTO tasks (title, completed, priority) VALUES ($1, $2, $3) RETURNING *',
+        [task.title, task.completed, task.priority]
       );
       insertedTasks.push(rows[0]);
     }
@@ -108,11 +125,11 @@ app.post('/tasks/bulk', async (req, res, next) => {
   }
 });
 
-// PATCH /tasks/:id — update a task (complete/uncomplete or rename)
+// PATCH /tasks/:id — update a task (complete/uncomplete, rename, or change priority)
 app.patch('/tasks/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const { completed, title } = req.body;
+    const { completed, title, priority } = req.body;
 
     const { rows } = await db.query('SELECT * FROM tasks WHERE id = $1', [id]);
     if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
@@ -120,10 +137,16 @@ app.patch('/tasks/:id', async (req, res, next) => {
     const current = rows[0];
     const newCompleted = completed !== undefined ? Boolean(completed) : current.completed;
     const newTitle = title !== undefined ? title.trim() : current.title;
+    const newPriority = priority !== undefined ? priority : current.priority;
+
+    // Validate priority if provided
+    if (priority !== undefined && !VALID_PRIORITIES.includes(newPriority)) {
+      return res.status(400).json({ error: `priority must be one of: ${VALID_PRIORITIES.join(', ')}` });
+    }
 
     const { rows: updated } = await db.query(
-      'UPDATE tasks SET completed = $1, title = $2 WHERE id = $3 RETURNING *',
-      [newCompleted, newTitle, id]
+      'UPDATE tasks SET completed = $1, title = $2, priority = $3 WHERE id = $4 RETURNING *',
+      [newCompleted, newTitle, newPriority, id]
     );
     res.json(updated[0]);
   } catch (err) {

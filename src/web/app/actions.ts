@@ -4,10 +4,13 @@ import { revalidatePath } from 'next/cache';
 
 const API_URL = process.env.API_URL || 'http://localhost:3001';
 
+export type Priority = 'low' | 'medium' | 'high';
+
 export type Task = {
   id: number;
   title: string;
   completed: boolean;
+  priority: Priority;
   created_at: string;
 };
 
@@ -27,15 +30,16 @@ export async function getTasks(): Promise<Task[]> {
 
 export async function createTask(formData: FormData) {
   const title = formData.get('title') as string;
+  const priority = (formData.get('priority') as Priority) || 'medium';
   await fetch(`${API_URL}/tasks`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title }),
+    body: JSON.stringify({ title, priority }),
   });
   revalidatePath('/');
 }
 
-export async function bulkImportTasks(tasks: Array<{ title: string; completed?: boolean }>): Promise<BulkImportResult> {
+export async function bulkImportTasks(tasks: Array<{ title: string; completed?: boolean; priority?: Priority }>): Promise<BulkImportResult> {
   const res = await fetch(`${API_URL}/tasks/bulk`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -57,6 +61,15 @@ export async function toggleTask(id: number, completed: boolean) {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ completed }),
+  });
+  revalidatePath('/');
+}
+
+export async function updateTaskPriority(id: number, priority: Priority) {
+  await fetch(`${API_URL}/tasks/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ priority }),
   });
   revalidatePath('/');
 }
