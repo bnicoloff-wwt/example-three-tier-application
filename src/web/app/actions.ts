@@ -11,6 +11,14 @@ export type Task = {
   created_at: string;
 };
 
+export type BulkImportResult = {
+  imported: number;
+  total: number;
+  skipped: number;
+  tasks: Task[];
+  validationErrors?: Array<{ index: number; error: string }>;
+};
+
 export async function getTasks(): Promise<Task[]> {
   const res = await fetch(`${API_URL}/tasks`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch tasks');
@@ -25,6 +33,23 @@ export async function createTask(formData: FormData) {
     body: JSON.stringify({ title }),
   });
   revalidatePath('/');
+}
+
+export async function bulkImportTasks(tasks: Array<{ title: string; completed?: boolean }>): Promise<BulkImportResult> {
+  const res = await fetch(`${API_URL}/tasks/bulk`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tasks }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.error || 'Failed to import tasks');
+  }
+
+  const result = await res.json();
+  revalidatePath('/');
+  return result;
 }
 
 export async function toggleTask(id: number, completed: boolean) {
