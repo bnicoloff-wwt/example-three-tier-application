@@ -1,0 +1,34 @@
+[
+  {
+    "title": "Buy groceries",
+    "completed": false
+  },
+  {
+    "title": "Write project proposal",
+    "completed": false
+  },
+  {
+    "title": "Review pull requests",
+    "completed": true
+  },
+  {
+    "title": "Schedule meeting with team",
+    "completed": false
+  },
+  {
+    "title": "Update documentation",
+    "completed": true
+  },
+  {
+    "title": "Deploy to production",
+    "completed": false
+  },
+  {
+    "title": "Fix bug in payment module",
+    "completed": false
+  },
+  {
+    "title": "Call customer support",
+    "completed": true
+  }
+]
