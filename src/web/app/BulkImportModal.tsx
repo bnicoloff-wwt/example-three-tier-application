@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { bulkImportTasks } from './actions';
+import type { Priority } from './actions';
 
 type ImportStatus = 'idle' | 'parsing' | 'importing' | 'success' | 'error';
 
@@ -60,6 +61,8 @@ export function BulkImportModal({ onClose, onSuccess }: { onClose: () => void; o
           task.title = value;
         } else if (header === 'completed') {
           task.completed = value.toLowerCase() === 'true' || value === '1';
+        } else if (header === 'priority') {
+          task.priority = value.toLowerCase();
         }
       }
 
@@ -205,7 +208,7 @@ export function BulkImportModal({ onClose, onSuccess }: { onClose: () => void; o
                   <textarea
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
-                    placeholder='[{"title": "Task 1"}, {"title": "Task 2", "completed": true}]'
+                    placeholder='[{"title": "Task 1", "priority": "high"}, {"title": "Task 2", "completed": true, "priority": "low"}]'
                     className="w-full h-32 rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-50 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500"
                   />
                   <button
@@ -221,12 +224,12 @@ export function BulkImportModal({ onClose, onSuccess }: { onClose: () => void; o
                     CSV Format
                   </label>
                   <p className="text-xs text-zinc-500 mb-2">
-                    First row should be headers: title,completed
+                    Headers: title, completed (optional), priority (optional: low/medium/high)
                   </p>
                   <textarea
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
-                    placeholder="title,completed&#10;Task 1,false&#10;Task 2,true"
+                    placeholder="title,completed,priority&#10;Task 1,false,high&#10;Task 2,true,low"
                     className="w-full h-24 rounded border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-50 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500 font-mono"
                   />
                   <button
