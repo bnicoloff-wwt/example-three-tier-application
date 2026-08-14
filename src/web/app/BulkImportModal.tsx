@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { bulkImportTasks } from './actions';
+import { formatErrorMessage } from './errorHandler';
 
 type ImportStatus = 'idle' | 'parsing' | 'importing' | 'success' | 'error';
 
@@ -98,7 +99,8 @@ export function BulkImportModal({ onClose, onSuccess }: { onClose: () => void; o
       await performImport(tasks);
     } catch (err) {
       setStatus('error');
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(formatErrorMessage(err));
+      console.error('File parsing error:', err);
     }
   };
 
@@ -122,7 +124,8 @@ export function BulkImportModal({ onClose, onSuccess }: { onClose: () => void; o
       await performImport(tasks);
     } catch (err) {
       setStatus('error');
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(formatErrorMessage(err));
+      console.error('Text parsing error:', err);
     }
   };
 
@@ -134,7 +137,8 @@ export function BulkImportModal({ onClose, onSuccess }: { onClose: () => void; o
       setStatus('success');
     } catch (err) {
       setStatus('error');
-      setError(err instanceof Error ? err.message : 'Import failed');
+      setError(formatErrorMessage(err));
+      console.error('Import failed:', err);
     }
   };
 

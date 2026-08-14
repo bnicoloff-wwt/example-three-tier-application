@@ -3,19 +3,25 @@
 import { useState } from 'react';
 import { getTasks, createTask, toggleTask } from './actions';
 import { BulkImportModal } from './BulkImportModal';
+import { formatErrorMessage } from './errorHandler';
 import type { Task } from './actions';
 
 export function HomeClient({ initialTasks }: { initialTasks: Task[] }) {
   const [tasks, setTasks] = useState(initialTasks);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleRefreshTasks = async () => {
     setIsLoading(true);
+    setErrorMessage(null);
     try {
       const updated = await getTasks();
       setTasks(updated);
       setShowBulkImport(false);
+    } catch (error) {
+      setErrorMessage(formatErrorMessage(error));
+      console.error('Failed to refresh tasks:', error);
     } finally {
       setIsLoading(false);
     }
@@ -25,6 +31,21 @@ export function HomeClient({ initialTasks }: { initialTasks: Task[] }) {
     <>
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 py-16 px-4">
         <div className="max-w-lg mx-auto">
+          {/* Error message display */}
+          {errorMessage && (
+            <div className="mb-4 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 rounded-lg">
+              <p className="text-red-800 dark:text-red-200 text-sm font-medium">
+                ⚠️ {errorMessage}
+              </p>
+              <button
+                onClick={() => setErrorMessage(null)}
+                className="text-sm text-red-600 dark:text-red-300 hover:underline mt-2"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
               To-Do List

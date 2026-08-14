@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('./db');
+const errorHandler = require('./utils/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -131,12 +132,41 @@ app.patch('/tasks/:id', async (req, res, next) => {
   }
 });
 
-// Error handler (must be last)
-app.use((err, _req, res, _next) => {
-  console.error(err);
-  res.status(500).json({ error: 'Internal server error' });
+// Global error handler middleware (must be last)
+app.use(errorHandler);
+
+const server = app.listen(PORT, () => {
+  console.log(`API listening on port ${PORT}`);
 });
 
-app.listen(PORT, () => {
-  console.log(`API listening on port ${PORT}`);
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', {
+    message: err.message,
+    stack: err.stack,
+  });
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
