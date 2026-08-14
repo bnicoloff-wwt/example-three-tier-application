@@ -131,6 +131,142 @@ app.patch('/tasks/:id', async (req, res, next) => {
   }
 });
 
+// =====================
+// DAD JOKES ENDPOINTS
+// =====================
+
+// GET /dad-jokes — list all jokes with pagination
+app.get('/dad-jokes', async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const sort = req.query.sort || 'rating'; // 'rating' or 'newest'
+    const offset = (page - 1) * limit;
+
+    const orderBy = sort === 'newest' ? 'created_at DESC' : 'rating DESC, created_at DESC';
+
+    const { rows, rowCount } = await db.query(
+      `SELECT * FROM dad_jokes ORDER BY ${orderBy} LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+
+    const { rows: countRows } = await db.query('SELECT COUNT(*) as total FROM dad_jokes');
+    const total = parseInt(countRows[0].total);
+
+    res.json({
+      jokes: rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /dad-jokes/random — get a random joke
+app.get('/dad-jokes/random', async (_req, res, next) => {
+  try {
+    const { rows } = await db.query(
+      'SELECT * FROM dad_jokes ORDER BY RANDOM() LIMIT 1'
+    );
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'No jokes found' });
+    }
+
+    res.json(rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /dad-jokes/:id — get a specific joke
+app.get('/dad-jokes/:id', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { rows } = await db.query('SELECT * FROM dad_jokes WHERE id = $1', [id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Joke not found' });
+    }
+
+    res.json(rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /dad-jokes — create a new joke
+app.post('/dad-jokes', async (req, res, next) => {
+  try {
+    const { setup, punchline } = req.body;
+
+    // Validate input
+    if (!setup || typeof setup !== 'string' || !setup.trim()) {
+      return res.status(400).json({ error: 'setup is required' });
+    }
+
+    if (!punchline || typeof punchline !== 'string' || !punchline.trim()) {
+      return res.status(400).json({ error: 'punchline is required' });
+    }
+
+    if (setup.trim().length > 1000) {
+      return res.status(400).json({ error: 'setup must be 1000 characters or less' });
+    }
+
+    if (punchline.trim().length > 1000) {
+      return res.status(400).json({ error: 'punchline must be 1000 characters or less' });
+    }
+
+    const { rows } = await db.query(
+      'INSERT INTO dad_jokes (setup, punchline) VALUES ($1, $2) RETURNING *',
+      [setup.trim(), punchline.trim()]
+    );
+
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /dad-jokes/:id/rating — rate/upvote a joke
+app.patch('/dad-jokes/:id/rating', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { value } = req.body; // value should be 1 for upvote, -1 for downvote
+
+    if (![-1, 1].includes(value)) {
+      return res.status(400).json({ error: 'rating value must be 1 (upvote) or -1 (downvote)' });
+    }
+
+    const { rows } = await db.query(
+      'SELECT * FROM dad_jokes WHERE id = $1',
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Joke not found' });
+    }
+
+    const joke = rows[0];
+    const newRating = joke.rating + value;
+    const newRatingCount = joke.rating_count + 1;
+
+    const { rows: updated } = await db.query(
+      'UPDATE dad_jokes SET rating = $1, rating_count = $2 WHERE id = $3 RETURNING *',
+      [newRating, newRatingCount, id]
+    );
+
+    res.json(updated[0]);
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Error handler (must be last)
 app.use((err, _req, res, _next) => {
   console.error(err);
