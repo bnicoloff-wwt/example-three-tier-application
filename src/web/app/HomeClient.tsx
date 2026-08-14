@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { getTasks, createTask, toggleTask } from './actions';
 import { BulkImportModal } from './BulkImportModal';
+import { DadJokesPanel } from './DadJokesPanel';
+import { AddJokeForm } from './AddJokeForm';
 import type { Task } from './actions';
 
 export function HomeClient({ initialTasks }: { initialTasks: Task[] }) {
@@ -25,6 +27,7 @@ export function HomeClient({ initialTasks }: { initialTasks: Task[] }) {
     <>
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 py-16 px-4">
         <div className="max-w-lg mx-auto">
+          {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
               To-Do List
@@ -105,6 +108,12 @@ export function HomeClient({ initialTasks }: { initialTasks: Task[] }) {
               {tasks.filter((t) => t.completed).length} / {tasks.length} completed
             </p>
           )}
+
+          {/* Dad Jokes Section */}
+          <DadJokesPanel />
+
+          {/* Add Joke Form */}
+          <AddJokeForm />
         </div>
       </div>
 
