@@ -61,12 +61,26 @@ docker compose up --build
 
 The API is not exposed directly, but you can reach it through the web container or by temporarily mapping its port:
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/health` | Health check |
-| GET | `/tasks` | List all tasks |
-| POST | `/tasks` | Create a task (`{ "title": "..." }`) |
-| PATCH | `/tasks/:id` | Update a task (`{ "completed": true }` or `{ "title": "..." }`) |
+| Method | Path | Description | Rate Limit |
+|--------|------|-------------|-----------|
+| GET | `/health` | Health check | None |
+| POST | `/auth/login` | Login (email, password) | 10/15 min per IP |
+| GET | `/tasks` | List all tasks | None |
+| POST | `/tasks` | Create a task (`{ "title": "..." }`) | None |
+| PATCH | `/tasks/:id` | Update a task (`{ "completed": true }` or `{ "title": "..." }`) | None |
+| POST | `/tasks/bulk` | Bulk import tasks | None |
+
+## Security
+
+### Login Rate Limiting
+
+The `/auth/login` endpoint is protected with rate limiting to prevent brute-force attacks:
+
+- **Limit**: 10 login attempts per IP address
+- **Window**: 15 minutes
+- **Response**: 429 Too Many Requests when exceeded
+
+For details, see [RATE_LIMITING.md](RATE_LIMITING.md).
 
 ## Project structure
 
@@ -75,6 +89,10 @@ src/
 ├── api/            # Express REST API
 │   ├── index.js    # Route handlers
 │   ├── db.js       # PostgreSQL connection pool
+│   ├── utils/      # Utility modules
+│   │   ├── errorHandler.js      # Global error handler
+│   │   ├── loginLimiter.js      # Rate limiter middleware
+│   │   └── formatBytes.js       # Byte formatting utility
 │   └── Dockerfile
 ├── db/             # Database migrations
 │   ├── migrations/ # node-pg-migrate migration files
@@ -87,6 +105,12 @@ src/
     ├── variables.tf
     └── outputs.tf
 ```
+
+## Documentation
+
+- **[RATE_LIMITING.md](RATE_LIMITING.md)** — Login endpoint rate limiting configuration and testing
+- **[BULK_IMPORT.md](BULK_IMPORT.md)** — Bulk task import feature documentation
+- **[TESTING.md](TESTING.md)** — Comprehensive testing guide
 
 ## Deploying to GCP
 
