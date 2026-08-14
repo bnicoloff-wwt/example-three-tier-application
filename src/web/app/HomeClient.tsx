@@ -29,7 +29,7 @@ export function HomeClient({ initialTasks }: { initialTasks: Task[] }) {
 
   return (
     <>
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900 py-16 px-4">
+      <div className="flex-1 bg-zinc-50 dark:bg-zinc-900 py-16 px-4">
         <div className="max-w-lg mx-auto">
           {/* Error message display */}
           {errorMessage && (
