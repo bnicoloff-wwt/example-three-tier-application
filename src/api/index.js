@@ -1,13 +1,46 @@
 const express = require('express');
 const db = require('./db');
+const { createLoginLimiter } = require('./utils/rateLimiter');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(express.json({ limit: '10mb' }));
 
+// Create rate limiter for login endpoint
+const loginLimiter = createLoginLimiter();
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
+});
+
+// POST /login — authenticate user (rate-limited)
+app.post('/login', loginLimiter, async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+
+    // Validate input
+    if (!username || typeof username !== 'string' || !username.trim()) {
+      return res.status(400).json({ error: 'username is required' });
+    }
+
+    if (!password || typeof password !== 'string' || !password.trim()) {
+      return res.status(400).json({ error: 'password is required' });
+    }
+
+    // Note: In a real application, you would:
+    // 1. Query the database for the user
+    // 2. Hash and compare the password using bcrypt
+    // 3. Generate and return a JWT token or session
+    // For this demo, we'll return a simple success response
+    res.json({
+      success: true,
+      message: 'Login successful',
+      token: `demo-token-${Date.now()}`,
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET /tasks — list all tasks
