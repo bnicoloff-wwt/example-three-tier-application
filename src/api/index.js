@@ -1,14 +1,47 @@
 const express = require('express');
 const db = require('./db');
 const errorHandler = require('./utils/errorHandler');
+const loginLimiter = require('./utils/loginLimiter');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(express.json({ limit: '10mb' }));
 
+// Apply rate limiting to all routes (it skips non-login endpoints internally)
+app.use(loginLimiter);
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
+});
+
+// POST /auth/login — login endpoint with rate limiting
+app.post('/auth/login', async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    // Basic validation
+    if (!email || typeof email !== 'string' || !email.trim()) {
+      return res.status(400).json({ error: 'email is required' });
+    }
+
+    if (!password || typeof password !== 'string' || !password.trim()) {
+      return res.status(400).json({ error: 'password is required' });
+    }
+
+    // TODO: Implement actual authentication logic
+    // This is a placeholder implementation
+    // In a real application, you would:
+    // 1. Query the users table
+    // 2. Hash and compare passwords
+    // 3. Return a JWT token or session cookie
+    // 4. Log failed attempts
+
+    // For now, reject all logins (placeholder)
+    return res.status(401).json({ error: 'Invalid credentials' });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET /tasks — list all tasks
