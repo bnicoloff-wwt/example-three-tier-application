@@ -1,4 +1,6 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
+const bcrypt = require('bcryptjs');
 const db = require('./db');
 const errorHandler = require('./utils/errorHandler');
 
@@ -7,8 +9,61 @@ const PORT = process.env.PORT || 3001;
 
 app.use(express.json({ limit: '10mb' }));
 
+// Rate limiter for login endpoint
+// Maximum 10 requests per 15 minutes per IP address
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 requests per windowMs
+  message: 'Too many login attempts, please try again later',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
+});
+
+// POST /login — user authentication with rate limiting
+app.post('/login', loginLimiter, async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || typeof email !== 'string' || !email.trim()) {
+      return res.status(400).json({ error: 'email is required' });
+    }
+    if (!password || typeof password !== 'string') {
+      return res.status(400).json({ error: 'password is required' });
+    }
+
+    // Query for user
+    const { rows } = await db.query(
+      'SELECT id, email, password_hash FROM users WHERE email = $1',
+      [email.toLowerCase().trim()]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    const user = rows[0];
+
+    // Compare password with stored hash
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Successful login - return user info (without password)
+    res.json({
+      id: user.id,
+      email: user.email,
+      message: 'Login successful'
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // GET /tasks — list all tasks
