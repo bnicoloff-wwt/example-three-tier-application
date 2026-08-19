@@ -1,0 +1,22 @@
+name: CI
+
+# Added 2026-08-19 so this practice fork produces real check runs on a pull
+# request. Before this, the fork had never run a workflow, so every Forge PR
+# reported zero checks and the build-monitoring surface had nothing to read.
+on:
+  pull_request:
+  push:
+    branches: ["**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install API dependencies
+        run: npm install --prefix src/api
+      - name: Run API tests
+        run: npm test --prefix src/api
