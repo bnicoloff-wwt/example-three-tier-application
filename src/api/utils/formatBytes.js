@@ -2,7 +2,7 @@
  * Formats a byte count into a human-readable string
  * @param {number} bytes - The number of bytes
  * @param {number} decimals - Number of decimal places (default: 1)
- * @return s {string} Formatted byte string (e.g., "1.5 MB")
+ * @returns {string} Formatted byte string (e.g., "1.5 MB")
  */
 function formatBytes(bytes, decimals = 1) {
   if (!Number.isFinite(bytes) || bytes < 0) {
@@ -14,8 +14,8 @@ function formatBytes(bytes, decimals = 1) {
   let unitIndex = 0;
 
   // Find the appropriate unit
-  while (size >= 1000 && unitIndex < units.length - 1) {
-    size /= 1000;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
     unitIndex++;
   }
 
