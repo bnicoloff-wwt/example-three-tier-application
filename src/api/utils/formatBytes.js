@@ -25,4 +25,3 @@ function formatBytes(bytes, decimals = 1) {
 }
 
 module.exports = formatBytes;
-
