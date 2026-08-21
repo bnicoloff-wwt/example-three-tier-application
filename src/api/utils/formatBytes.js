@@ -25,3 +25,5 @@ function formatBytes(bytes, decimals = 1) {
 }
 
 module.exports = formatBytes;
+
+// verify fixture: head moved at 1787341226
