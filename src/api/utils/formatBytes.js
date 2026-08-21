@@ -14,8 +14,8 @@ function formatBytes(bytes, decimals = 1) {
   let unitIndex = 0;
 
   // Find the appropriate unit
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
+  while (size >= 1000 && unitIndex < units.length - 1) {
+    size /= 1000;
     unitIndex++;
   }
 
