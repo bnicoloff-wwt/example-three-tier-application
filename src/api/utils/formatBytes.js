@@ -2,7 +2,7 @@
  * Formats a byte count into a human-readable string
  * @param {number} bytes - The number of bytes
  * @param {number} decimals - Number of decimal places (default: 1)
- * @returns {string} Formatted byte string (e.g., "1.5 MB")
+ * @return s {string} Formatted byte string (e.g., "1.5 MB")
  */
 function formatBytes(bytes, decimals = 1) {
   if (!Number.isFinite(bytes) || bytes < 0) {
