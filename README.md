@@ -1,4 +1,5 @@
 # This project is maintained by the AINE bootcamp
+<!-- epic-16: cross-mode verification -->
 
 # example-three-tier-application
 
