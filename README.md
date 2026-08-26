@@ -1,4 +1,5 @@
 # This project is maintained by the AINE bootcamp
+<!-- 16b branch-gone verification -->
 
 # example-three-tier-application
 
