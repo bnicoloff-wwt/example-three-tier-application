@@ -1,9 +1,13 @@
 <!-- Verified by story 20 on 2026-08-27. -->
+<!-- This is a three-tier web application demonstrating how to build a modern full-stack app with a Next.js frontend, Express API backend, and PostgreSQL database. It includes Docker Compose setup for local development and Terraform infrastructure code for deployment to Google Cloud Platform. -->
+
 # This project is maintained by the AINE bootcamp
 
 # example-three-tier-application
 
 A reference implementation of a three-tier web application: a Next.js frontend, an Express REST API, and a PostgreSQL database. It runs locally with Docker Compose and deploys to Google Cloud Platform (Cloud Run + Cloud SQL) via Terraform.
+
+This project uses a modern tech stack: Next.js 16 and React 19 for the frontend, Node.js 22 with Express 5 for the backend API, and PostgreSQL 17 for the database.
 
 ## Architecture
 
@@ -133,3 +137,5 @@ DATABASE_URL=postgres://app:app@localhost:5432/app npx node-pg-migrate down
 ```
 
 When running via Docker Compose the `migrate` service handles this automatically on startup.
+<!-- external push to force a conflict, story 21 /verify -->
+<!-- second external push, timed right after Send, to hit the mid-run race -->
