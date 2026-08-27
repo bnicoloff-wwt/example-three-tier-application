@@ -1,4 +1,6 @@
 <!-- Verified by story 20 on 2026-08-27. -->
+<!-- This is a three-tier web application demonstrating how to build a modern full-stack app with a Next.js frontend, Express API backend, and PostgreSQL database. It includes Docker Compose setup for local development and Terraform infrastructure code for deployment to Google Cloud Platform. -->
+
 # This project is maintained by the AINE bootcamp
 
 # example-three-tier-application
