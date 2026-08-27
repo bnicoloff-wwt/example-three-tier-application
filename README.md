@@ -138,3 +138,4 @@ DATABASE_URL=postgres://app:app@localhost:5432/app npx node-pg-migrate down
 
 When running via Docker Compose the `migrate` service handles this automatically on startup.
 <!-- external push to force a conflict, story 21 /verify -->
+<!-- second external push, timed right after Send, to hit the mid-run race -->
