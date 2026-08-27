@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3001;
 
 app.use(express.json({ limit: '10mb' }));
 
+// GET /health — returns server health status
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
@@ -21,7 +22,7 @@ app.get('/tasks', async (_req, res, next) => {
   }
 });
 
-// POST /tasks — create a task
+// POST /tasks — create a new task
 app.post('/tasks', async (req, res, next) => {
   try {
     const { title } = req.body;
@@ -38,7 +39,7 @@ app.post('/tasks', async (req, res, next) => {
   }
 });
 
-// POST /tasks/bulk — bulk import tasks
+// POST /tasks/bulk — bulk import multiple tasks at once with validation
 app.post('/tasks/bulk', async (req, res, next) => {
   try {
     const { tasks } = req.body;
@@ -109,7 +110,7 @@ app.post('/tasks/bulk', async (req, res, next) => {
   }
 });
 
-// PATCH /tasks/:id — update a task (complete/uncomplete or rename)
+// PATCH /tasks/:id — update a task by id (toggle completion status or rename title)
 app.patch('/tasks/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id, 10);
